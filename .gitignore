@@ -1,0 +1,24 @@
+# Power BI binary — unreadable diffs, too large for Git
+*.pbix
+
+# Power BI Desktop cache and temp
+.pbi/
+LocalSettings.json
+*.abf
+
+# PBIP local cache
+.cache/
+
+# Claude Desktop config has local file paths — keep a template only
+setup/claude_desktop_config_local.json
+
+# OS clutter
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Node — used by filesystem MCP server
+node_modules/
+
+# Draft session files
+outputs/git_sessions/draft_*.md
