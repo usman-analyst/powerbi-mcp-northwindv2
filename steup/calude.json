@@ -1,0 +1,19 @@
+{
+  "mcpServers": {
+
+    "powerbi-modeling": {
+      "command": "C:\\Users\\usman sharif\\.vscode\\extensions\\analysis-services.powerbi-modeling-mcp-0.4.0-win32-x64\\server\\powerbi-modeling-mcp.exe",
+      "args": []
+    },
+
+    "filesystem": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "C:\\Users\\usman sharif\\Desktop\\Gen_AI\\PBI\\powerbi-mcp-northwindv2"
+      ]
+    }
+
+  }
+}
