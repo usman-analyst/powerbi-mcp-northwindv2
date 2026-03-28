@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "orders_card",
   "position": {
-    "x": 250,
-    "y": 0,
+    "x": 324.48463928201585,
+    "y": 134.78896428474269,
     "z": 1000,
-    "height": 120,
-    "width": 240,
+    "height": 98.617880566102855,
+    "width": 295.85364169830859,
     "tabOrder": 1
   },
   "visual": {

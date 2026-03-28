@@ -1,16 +1,16 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "monthly_trend",
   "position": {
-    "x": 0,
-    "y": 130,
+    "x": 20.677942699344147,
+    "y": 258.58932239706786,
     "z": 1000,
-    "height": 300,
-    "width": 760,
-    "tabOrder": 3
+    "height": 205.18881601656884,
+    "width": 749.17777010700718,
+    "tabOrder": 4
   },
   "visual": {
-    "visualType": "lineChart",
+    "visualType": "areaChart",
     "query": {
       "queryState": {
         "Category": {
@@ -27,7 +27,8 @@
                 }
               },
               "queryRef": "DimDate.MonthYearLabel",
-              "active": true
+              "active": true,
+              "displayName": "Month"
             }
           ]
         },
@@ -45,11 +46,41 @@
                 }
               },
               "queryRef": "_Measures.Total Revenue",
-              "active": true
+              "displayName": "Revenue ($)"
             }
           ]
         }
       }
+    },
+    "objects": {
+      "labels": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Total Revenue by Month'"
+                }
+              }
+            }
+          }
+        }
+      ]
     }
   }
 }

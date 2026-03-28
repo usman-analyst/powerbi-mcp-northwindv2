@@ -1,13 +1,13 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
-  "name": "customers_card",
+  "name": "aov_card",
   "position": {
-    "x": 629.88194684156019,
+    "x": 935.27925440110448,
     "y": 134.78896428474269,
     "z": 1000,
     "height": 98.617880566102855,
-    "width": 295.85364169830859,
-    "tabOrder": 2
+    "width": 324.48463928201585,
+    "tabOrder": 3
   },
   "visual": {
     "visualType": "card",
@@ -23,10 +23,10 @@
                       "Entity": "_Measures"
                     }
                   },
-                  "Property": "Total Customers"
+                  "Property": "Average Order Value"
                 }
               },
-              "queryRef": "_Measures.Total Customers",
+              "queryRef": "_Measures.Average Order Value",
               "active": true
             }
           ]

@@ -1,12 +1,12 @@
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.5.0/schema.json",
   "name": "revenue_card",
   "position": {
-    "x": 0,
-    "y": 0,
+    "x": 20.677942699344147,
+    "y": 134.78896428474269,
     "z": 1000,
-    "height": 120,
-    "width": 240,
+    "height": 98.617880566102855,
+    "width": 294.26303072143594,
     "tabOrder": 0
   },
   "visual": {
