@@ -1,0 +1,71 @@
+table customers
+	lineageTag: 97f413a6-5e85-4f35-8f04-c92165245afc
+
+	/// Unique code identifying each customer account. Typically a short alphanumeric abbreviation of the company name.
+	column customerID
+		dataType: string
+		lineageTag: 66a1f9f3-68c5-44b2-9a95-94c2d0b381e5
+		summarizeBy: none
+		sourceColumn: customerID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The full registered trading name of the customer's business.
+	column companyName
+		dataType: string
+		lineageTag: 9e59b564-35bf-495d-85b2-473f0d44c607
+		summarizeBy: none
+		sourceColumn: companyName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The name of the primary person to contact at this customer's company for sales or order enquiries.
+	column contactName
+		dataType: string
+		lineageTag: 9447fe08-c5e4-4bd8-a5ab-ae5219ee2030
+		summarizeBy: none
+		sourceColumn: contactName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The job title of the primary contact, such as Sales Manager or Purchasing Agent.
+	column contactTitle
+		dataType: string
+		lineageTag: 286e4ae5-440b-4c91-ab87-5b986f2f189c
+		summarizeBy: none
+		sourceColumn: contactTitle
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The city where the customer's business is located. Useful for regional sales analysis and geographic filtering.
+	column city
+		dataType: string
+		lineageTag: a9455b62-19d6-4b6a-8d25-910b3525f2cd
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The country where the customer is based. Used for international sales reporting and territory analysis.
+	column country
+		dataType: string
+		lineageTag: 6d9d8320-a6f6-4fec-9570-1b4e04a429a3
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	partition customers = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\usman sharif\Downloads\archive\customers.csv"),[Delimiter=",", Columns=6, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"customerID", type text}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

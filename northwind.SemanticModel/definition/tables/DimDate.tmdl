@@ -1,0 +1,145 @@
+table DimDate
+	lineageTag: 21ec30bc-ed9a-4d95-9f2d-43e06e797168
+	dataCategory: Time
+
+	column Date
+		isUnique
+		formatString: Short Date
+		lineageTag: 02f90ea5-97c1-49a9-95ce-0188274ca330
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Date]
+
+	column Year
+		lineageTag: 6a0ad996-6d7c-4184-bd41-a41a12beaeb6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Year]
+
+	column Quarter
+		lineageTag: f59c959e-5f64-4988-9f2a-6fa0fd74ef3b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [Quarter]
+		sortByColumn: QuarterNumber
+
+	column QuarterNumber
+		lineageTag: 8d20f3f5-5677-4429-94d4-22c806dafcbe
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [QuarterNumber]
+
+	column MonthNumber
+		lineageTag: 37031df4-1344-4c8e-af50-f4883be19c8c
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthNumber]
+
+	column MonthName
+		lineageTag: ed5882d4-9136-4074-bc0a-d233ddb8baf5
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthName]
+		sortByColumn: MonthNumber
+
+	column MonthShort
+		lineageTag: b525f2d3-1e8c-468a-b5c5-00b197420ed6
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthShort]
+		sortByColumn: MonthNumber
+
+	column MonthYearLabel
+		lineageTag: 85b4f9de-774d-4ca7-8b0c-bc00a6853c91
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthYearLabel]
+		sortByColumn: MonthSort
+
+	column WeekNumber
+		lineageTag: 16f1a8ef-2628-4706-9d5b-7d9879b92e30
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [WeekNumber]
+
+	column DayOfMonth
+		lineageTag: 0a6dc092-712e-4b5a-864f-72a3353af82b
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [DayOfMonth]
+
+	column DayOfWeekNumber
+		lineageTag: 4145af9d-89d0-46ca-bd14-d2734acb78b2
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [DayOfWeekNumber]
+
+	column DayName
+		lineageTag: f4d71140-78ad-439e-b1b3-f4b39a23c801
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [DayName]
+		sortByColumn: DayOfWeekNumber
+
+	column IsWeekend
+		lineageTag: 59423c48-be53-4359-beda-4faed8899aaa
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [IsWeekend]
+
+	column FiscalYear
+		lineageTag: 13d20bb8-089c-473f-9d8a-d4ca4096073a
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FiscalYear]
+
+	column FiscalQuarter
+		lineageTag: d2605529-54ad-454a-850f-a87114aa35f7
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [FiscalQuarter]
+
+	column MonthSort
+		isHidden
+		lineageTag: 8ba05674-11cb-4c02-a15a-a68fa81d0c89
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [MonthSort]
+
+	column QuarterSort
+		isHidden
+		lineageTag: fbaa4319-6d18-4a5a-91de-bd8ad5dab144
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [QuarterSort]
+
+	partition DimDate = calculated
+		mode: import
+		source =
+				VAR StartDate = DATE(2013, 7, 4)
+				VAR EndDate = DATE(2015, 12, 31)
+				RETURN
+				ADDCOLUMNS(
+				    CALENDAR(StartDate, EndDate),
+				    "Year",                YEAR([Date]),
+				    "Quarter",             "Q" & QUARTER([Date]),
+				    "QuarterNumber",       QUARTER([Date]),
+				    "MonthNumber",         MONTH([Date]),
+				    "MonthName",           FORMAT([Date], "MMMM"),
+				    "MonthShort",          FORMAT([Date], "MMM"),
+				    "MonthYearLabel",      FORMAT([Date], "MMM YYYY"),
+				    "WeekNumber",          WEEKNUM([Date], 2),
+				    "DayOfMonth",          DAY([Date]),
+				    "DayOfWeekNumber",     WEEKDAY([Date], 2),
+				    "DayName",             FORMAT([Date], "DDDD"),
+				    "IsWeekend",           IF(WEEKDAY([Date], 2) >= 6, TRUE, FALSE),
+				    "FiscalYear",          IF(MONTH([Date]) >= 7, YEAR([Date]) + 1, YEAR([Date])),
+				    "FiscalQuarter",       "Q" & SWITCH(TRUE,
+				                               MONTH([Date]) IN {7,8,9},   1,
+				                               MONTH([Date]) IN {10,11,12}, 2,
+				                               MONTH([Date]) IN {1,2,3},   3,
+				                               4),
+				    "MonthSort",           YEAR([Date]) * 100 + MONTH([Date]),
+				    "QuarterSort",         YEAR([Date]) * 10 + QUARTER([Date])
+				)
+

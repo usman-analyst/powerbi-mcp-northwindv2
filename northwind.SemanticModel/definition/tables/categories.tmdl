@@ -1,0 +1,45 @@
+table categories
+	lineageTag: 1fa5ea1b-f6e9-4815-abab-3fb29b43a512
+
+	/// Unique identifier for each product category. Referenced by the products table to group products into logical families.
+	column categoryID
+		dataType: int64
+		formatString: 0
+		lineageTag: cf4bcc48-d68c-4766-8adc-56f20c32f5ee
+		summarizeBy: count
+		sourceColumn: categoryID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The name of the product category, such as Beverages, Condiments, or Seafood. Used for category-level sales breakdowns.
+	column categoryName
+		dataType: string
+		lineageTag: 6955204b-1674-4c3b-ae1d-291a25f98b64
+		summarizeBy: none
+		sourceColumn: categoryName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// A short explanation of what kinds of products belong to this category.
+	column description
+		dataType: string
+		lineageTag: 9737e37f-2259-429a-83ff-1b4265a6bba8
+		summarizeBy: none
+		sourceColumn: description
+
+		annotation SummarizationSetBy = Automatic
+
+	partition categories = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\usman sharif\Downloads\archive\categories.csv"),[Delimiter=",", Columns=3, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"categoryID", Int64.Type}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

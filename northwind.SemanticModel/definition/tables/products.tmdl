@@ -1,0 +1,108 @@
+table products
+	lineageTag: 0b592a3c-ba70-484a-8578-636de42a2c34
+
+	/// Unique identifier for each product in the catalogue.
+	column productID
+		dataType: int64
+		formatString: 0
+		lineageTag: 1ddb373e-d3fa-40cf-811c-393367a819ec
+		summarizeBy: count
+		sourceColumn: productID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The full commercial name of the product as sold to customers.
+	column productName
+		dataType: string
+		lineageTag: f0507128-39ab-40a5-8542-08160f9474e1
+		summarizeBy: none
+		sourceColumn: productName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// A description of how the product is packaged and sold, such as '10 boxes x 20 bags' or '24 x 12 oz bottles'.
+	column quantityPerUnit
+		dataType: string
+		lineageTag: 5bfab28f-a98c-4e76-a4a7-195f5739d77b
+		summarizeBy: none
+		sourceColumn: quantityPerUnit
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The current standard list price per unit. This is the catalogue price and may not match the price recorded on historical orders.
+	column unitPrice
+		dataType: decimal
+		formatString: #,##0.00
+		lineageTag: 271e30af-ca0b-4b44-98b3-af8b2ca64641
+		summarizeBy: none
+		sourceColumn: unitPrice
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Indicates whether the product is still available for sale. 1 means the product has been discontinued and is no longer orderable; 0 means it is still active.
+	column discontinued
+		dataType: int64
+		lineageTag: 0e63b3e9-93e2-4f00-8567-15e76d068345
+		summarizeBy: none
+		sourceColumn: discontinued
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The product category this item belongs to, such as Beverages or Dairy. Links to the categories table.
+	column categoryID
+		dataType: int64
+		lineageTag: aaf77f88-7cec-4a20-a7ab-cdfe9a70ae8e
+		summarizeBy: none
+		sourceColumn: categoryID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Categorises each product into Budget / Standard / Premium based on unit price
+	column PriceTier =
+			/*
+			   PriceTier
+			   Categorises each product's unitPrice into one of three tiers:
+			
+			     "Budget"   — unitPrice < 15
+			                  Entry-level products at the lowest price point.
+			
+			     "Standard" — unitPrice >= 15 and <= 50
+			                  Mid-range products covering the bulk of the catalogue.
+			
+			     "Premium"  — unitPrice > 50
+			                  High-value products at the top of the price range.
+			
+			   SWITCH(TRUE(), ...) evaluates conditions top-to-bottom and
+			   short-circuits on the first match, making it the cleanest
+			   DAX pattern for banded categorisation. unitPrice is Decimal
+			   so no casting is required.
+			*/
+			SWITCH(
+			    TRUE(),
+			    products[unitPrice] < 15,  "Budget",
+			    products[unitPrice] <= 50, "Standard",
+			                               "Premium"
+			)
+		dataType: string
+		lineageTag: e920d1ce-9851-44fa-bab9-5f24b161d9c4
+		summarizeBy: none
+
+	partition products = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\\Users\\usman sharif\\Downloads\\archive\\products.csv"),[Delimiter=",", Columns=6, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+				        {"productID",    Int64.Type},
+				        {"categoryID",   Int64.Type},
+				        {"unitPrice",    Decimal.Type},
+				        {"discontinued", Int64.Type}
+				    })
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

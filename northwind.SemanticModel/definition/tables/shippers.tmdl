@@ -1,0 +1,37 @@
+table shippers
+	lineageTag: a1cc877b-0e26-4058-a179-5b849eca2012
+
+	/// Unique identifier for each shipping company. Referenced by the orders table to record which carrier delivered the order.
+	column shipperID
+		dataType: int64
+		lineageTag: e7d0ad30-fd45-4ff9-be0c-a117300aeca4
+		summarizeBy: none
+		sourceColumn: shipperID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The trading name of the shipping or courier company used to deliver orders, such as Federal Shipping or United Package.
+	column companyName
+		dataType: string
+		lineageTag: f2ebdb49-3b91-4dfb-b797-b29ba6393d65
+		summarizeBy: none
+		sourceColumn: companyName
+
+		annotation SummarizationSetBy = Automatic
+
+	partition shippers = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\usman sharif\Downloads\archive\shippers.csv"),[Delimiter=",", Columns=2, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+				        {"shipperID", Int64.Type}
+				    })
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

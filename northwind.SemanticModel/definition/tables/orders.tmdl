@@ -1,0 +1,154 @@
+table orders
+	lineageTag: b175133d-5380-4ae0-be3f-d93f94cebf60
+
+	/// Unique identifier for each customer order. Every row in the orders table represents one order.
+	column orderID
+		dataType: int64
+		formatString: 0
+		lineageTag: 2e40c4cd-5ab4-4eb1-934b-5b8b3cf1608c
+		summarizeBy: none
+		sourceColumn: orderID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The code identifying which customer placed this order. Links to the customers table.
+	column customerID
+		dataType: string
+		lineageTag: 5af9c01d-5fbd-4447-9031-e15b3eaf49ce
+		summarizeBy: none
+		sourceColumn: customerID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The employee who processed and is responsible for this order. Links to the employees table.
+	column employeeID
+		dataType: int64
+		formatString: 0
+		lineageTag: ba44f67b-4b8c-45be-b679-4883b56fbb51
+		summarizeBy: count
+		sourceColumn: employeeID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The date the customer placed the order. Used as the primary date axis for sales trend analysis.
+	column orderDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a23d5ae2-6647-4119-b03f-5e6b81d101f8
+		summarizeBy: none
+		sourceColumn: orderDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// The date the customer requested delivery by. Used alongside shippedDate to assess on-time performance.
+	column requiredDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 49c80cd2-c7d8-46b3-bc78-5362c2552959
+		summarizeBy: none
+		sourceColumn: requiredDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// The date the order was physically dispatched. Blank if the order has not yet been shipped.
+	column shippedDate
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: b3d999c2-323f-47eb-9820-27daa43a3124
+		summarizeBy: none
+		sourceColumn: shippedDate
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	/// The shipping company used to deliver this order. Links to the shippers table.
+	column shipperID
+		dataType: int64
+		formatString: 0
+		lineageTag: f444e331-ba3f-4800-bbe0-0cbaedc8bbb4
+		summarizeBy: count
+		sourceColumn: shipperID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The shipping cost charged for this order, in the local currency. Higher values indicate heavier or longer-distance shipments.
+	column freight
+		dataType: double
+		lineageTag: 5201228b-210f-4531-a4ce-508d8e174fab
+		summarizeBy: sum
+		sourceColumn: freight
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Categorises freight cost into Low / Medium / High bands
+	column FreightBand =
+			/*
+			   FreightBand
+			   Categorises the freight value for each order into one of
+			   three bands based on fixed thresholds:
+			     Low    = freight < 25
+			     Medium = freight >= 25 and <= 75
+			     High   = freight > 75
+			   Used for slicing and grouping orders by shipping cost tier
+			   in reports and visuals.
+			*/
+			SWITCH(
+			    TRUE(),
+			    orders[freight] < 25,         "Low",
+			    orders[freight] <= 75,        "Medium",
+			                                  "High"
+			)
+		dataType: string
+		lineageTag: 7cbd8555-391a-4d3c-8d01-b1fcf0cc20d3
+		summarizeBy: none
+
+	/// Classifies each order as On Time, Late, or Not Shipped based on shippedDate vs requiredDate
+	column DeliveryStatus =
+			/*
+			   DeliveryStatus
+			   Classifies each order into one of three delivery states:
+			
+			     "Not Shipped" — shippedDate is blank, meaning the order
+			                     has not yet been dispatched.
+			
+			     "On Time"     — the order was shipped on or before the
+			                     requiredDate (shippedDate <= requiredDate).
+			
+			     "Late"        — the order was shipped after the required
+			                     delivery date (shippedDate > requiredDate).
+			
+			   ISBLANK is checked first so that blank shippedDates are
+			   never compared against requiredDate, which would produce
+			   an incorrect result.
+			*/
+			SWITCH(
+			    TRUE(),
+			    ISBLANK( orders[shippedDate] ),              "Not Shipped",
+			    orders[shippedDate] <= orders[requiredDate],  "On Time",
+			                                                  "Late"
+			)
+		dataType: string
+		lineageTag: a9dcf4ef-3aff-4f57-b156-b15c20182e27
+		summarizeBy: none
+
+	partition orders = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\usman sharif\Downloads\archive\orders.csv"),[Delimiter=",", Columns=8, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"orderID", Int64.Type}, {"customerID", type text}, {"employeeID", Int64.Type}, {"orderDate", type date}, {"requiredDate", type date}, {"shippedDate", type date}, {"shipperID", Int64.Type}, {"freight", type number}})
+				in
+				    #"Changed Type"
+
+	annotation PBI_ResultType = Table
+
+	annotation PBI_NavigationStepName = Navigation
+

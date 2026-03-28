@@ -1,0 +1,73 @@
+table employees
+	lineageTag: 27f5da39-3974-4c18-b2d9-8f36aa40eacd
+
+	/// Unique identifier for each employee. Referenced by the orders table to attribute sales to individual staff members.
+	column employeeID
+		dataType: int64
+		lineageTag: 23d565f3-d73e-4b32-a9bf-f71c08b74d3c
+		summarizeBy: none
+		sourceColumn: employeeID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The full name of the employee, used for display in reports and employee performance visuals.
+	column employeeName
+		dataType: string
+		lineageTag: 3f68ed89-f686-4e0e-afb2-34d8de7305ef
+		summarizeBy: none
+		sourceColumn: employeeName
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The employee's job title, such as Sales Representative or Vice President of Sales.
+	column title
+		dataType: string
+		lineageTag: 921a4c7c-9440-4766-94cf-ccee055a2326
+		summarizeBy: none
+		sourceColumn: title
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The city where the employee is based or works from.
+	column city
+		dataType: string
+		lineageTag: f1fe6bd6-ffc1-4ed2-a797-713db3fe3049
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The country where the employee is located. Useful for regional headcount and performance reporting.
+	column country
+		dataType: string
+		lineageTag: ddcd4ec2-2551-46e3-b714-bfae75a2621b
+		summarizeBy: none
+		sourceColumn: country
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The employeeID of this person's direct manager. Used to represent the organisational hierarchy and reporting structure.
+	column reportsTo
+		dataType: string
+		lineageTag: 9c1bd7df-b009-416c-a623-c674d54c0ff6
+		summarizeBy: none
+		sourceColumn: reportsTo
+
+		annotation SummarizationSetBy = Automatic
+
+	partition employees = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\Users\usman sharif\Downloads\archive\employees.csv"),[Delimiter=",", Columns=6, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+				        {"employeeID", Int64.Type}
+				    })
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

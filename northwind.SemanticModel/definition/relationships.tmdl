@@ -1,0 +1,28 @@
+relationship AutoDetected_7816ea56-9b64-4918-9ee2-eecc202a0a41
+	fromColumn: order_details.orderID
+	toColumn: orders.orderID
+
+relationship AutoDetected_5910133b-bc85-4174-a35d-0cc374c17694
+	fromColumn: orders.customerID
+	toColumn: customers.customerID
+
+relationship orders_orderDate_DimDate_Date
+	fromColumn: orders.orderDate
+	toColumn: DimDate.Date
+
+relationship order_details_productID_products_productID
+	fromColumn: order_details.productID
+	toColumn: products.productID
+
+relationship orders_employeeID_employees_employeeID
+	fromColumn: orders.employeeID
+	toColumn: employees.employeeID
+
+relationship orders_shipperID_shippers_shipperID
+	fromColumn: orders.shipperID
+	toColumn: shippers.shipperID
+
+relationship products_categoryID_categories_categoryID
+	fromColumn: products.categoryID
+	toColumn: categories.categoryID
+

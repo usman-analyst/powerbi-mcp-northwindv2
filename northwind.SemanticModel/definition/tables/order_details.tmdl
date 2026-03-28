@@ -1,0 +1,106 @@
+table order_details
+	lineageTag: b0dd65d8-ad08-4ace-8ea4-e6d95b5db7c8
+
+	/// The order this line belongs to. Each order can have multiple lines, one per product purchased.
+	column orderID
+		dataType: int64
+		formatString: 0
+		lineageTag: 51a836e2-b07a-488d-a069-d1b4524892b0
+		summarizeBy: none
+		sourceColumn: orderID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The product purchased on this order line. Links to the products table.
+	column productID
+		dataType: int64
+		lineageTag: 3a756728-e2bf-433b-9f4c-9408bb0f2b82
+		summarizeBy: none
+		sourceColumn: productID
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The selling price per unit at the time the order was placed. May differ from the current list price in the products table.
+	column unitPrice
+		dataType: decimal
+		formatString: #,##0.00
+		lineageTag: 0b6d7f59-54d4-4ce1-968e-006c974fee64
+		summarizeBy: none
+		sourceColumn: unitPrice
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The number of units of this product ordered on this line.
+	column quantity
+		dataType: int64
+		lineageTag: 33224b3d-4ddf-409c-985b-46a2d9c4dac8
+		summarizeBy: none
+		sourceColumn: quantity
+
+		annotation SummarizationSetBy = Automatic
+
+	/// The proportional discount applied to this order line, expressed as a decimal (e.g. 0.10 = 10% off). A value of 0 means no discount was given.
+	column discount
+		dataType: decimal
+		formatString: 0.00%
+		lineageTag: c784cfc7-c5ce-4e9f-ae6d-64a2d0e9b7ac
+		summarizeBy: none
+		sourceColumn: discount
+
+		annotation SummarizationSetBy = Automatic
+
+	/// Categorises each order line by net line total into Small / Medium / Large bands
+	column LineTotalBand =
+			/*
+			   LineTotalBand
+			   First calculates the net line total as:
+			       unitPrice * quantity * (1 - discount)
+			   then categorises the result into one of three bands:
+			
+			     "Small"  — line total < 100
+			     "Medium" — line total >= 100 and <= 500
+			     "Large"  — line total > 500
+			
+			   The line total is stored in a VAR so the expression is
+			   computed once per row and reused in both SWITCH conditions,
+			   avoiding redundant calculation.
+			
+			   SWITCH(TRUE(), ...) evaluates top-to-bottom and short-circuits
+			   on the first TRUE condition — the cleanest DAX pattern for
+			   banded categorisation.
+			*/
+			VAR LineTotal =
+			    order_details[unitPrice]
+			        * order_details[quantity]
+			        * ( 1 - order_details[discount] )
+			RETURN
+			    SWITCH(
+			        TRUE(),
+			        LineTotal < 100,  "Small",
+			        LineTotal <= 500, "Medium",
+			                          "Large"
+			    )
+		dataType: string
+		lineageTag: 70ac9885-cca1-40d0-a271-b6a1c2001251
+		summarizeBy: none
+
+	partition order_details = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents("C:\\Users\\usman sharif\\Downloads\\archive\\order_details.csv"),[Delimiter=",", Columns=5, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+				    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true]),
+				    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{
+				        {"orderID",   Int64.Type},
+				        {"productID", Int64.Type},
+				        {"unitPrice", Decimal.Type},
+				        {"quantity",  Int64.Type},
+				        {"discount",  Decimal.Type}
+				    })
+				in
+				    #"Changed Type"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

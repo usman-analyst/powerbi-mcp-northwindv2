@@ -1,0 +1,107 @@
+table Date
+	lineageTag: 7f332752-e107-4a01-bbd8-c68788620e25
+	dataCategory: Time
+
+	column Date
+		isUnique
+		lineageTag: f6e797c8-a165-4afd-bb7c-b54832445417
+		isNameInferred
+		sourceColumn: [Date]
+
+	column Year
+		lineageTag: ad083ff2-b595-4b8e-9587-28ef1f0dd400
+		isNameInferred
+		sourceColumn: [Year]
+
+	column Quarter
+		lineageTag: 8cf92a55-aeb4-4103-b600-2a5b38e66643
+		isNameInferred
+		sourceColumn: [Quarter]
+
+	column QuarterNumber
+		lineageTag: f083cdbf-bc74-4eb3-92dc-583b574f37df
+		isNameInferred
+		sourceColumn: [QuarterNumber]
+
+	column Month
+		lineageTag: e500e729-95aa-4389-8591-76abb5e009b1
+		isNameInferred
+		sourceColumn: [Month]
+
+	column MonthName
+		lineageTag: 95991824-9b9a-4f22-a05c-d32a166cfb6a
+		isNameInferred
+		sourceColumn: [MonthName]
+
+	column MonthShort
+		lineageTag: 4a0ab17b-b769-40e0-84c7-bfd1f8ddd02a
+		isNameInferred
+		sourceColumn: [MonthShort]
+
+	column MonthYear
+		lineageTag: 73ac3f23-3bb0-4862-8d1f-84e6cb165dcc
+		isNameInferred
+		sourceColumn: [MonthYear]
+
+	column Day
+		lineageTag: 142b86fe-5220-4b60-a6c2-c181720199a8
+		isNameInferred
+		sourceColumn: [Day]
+
+	column DayOfWeek
+		lineageTag: 531f8f93-f753-4522-a483-c104d49ce24e
+		isNameInferred
+		sourceColumn: [DayOfWeek]
+
+	column DayName
+		lineageTag: 3eaf4436-93aa-4d46-8fa8-9ae0698bd3c2
+		isNameInferred
+		sourceColumn: [DayName]
+
+	column DayNameShort
+		lineageTag: e6a4d962-9698-44ce-b0c3-f7cbfa107e09
+		isNameInferred
+		sourceColumn: [DayNameShort]
+
+	column WeekNumber
+		lineageTag: 8cf8c72e-47fb-40ae-9584-5d5b382d7867
+		isNameInferred
+		sourceColumn: [WeekNumber]
+
+	column YearMonth
+		lineageTag: bf627b28-0a04-4081-a504-b8e61cea2284
+		isNameInferred
+		sourceColumn: [YearMonth]
+
+	column YearQuarter
+		lineageTag: 8fb5936a-e1c7-476d-9b3f-18cba5fa865c
+		isNameInferred
+		sourceColumn: [YearQuarter]
+
+	column IsWeekend
+		lineageTag: bd5340f9-6f10-4ff2-8538-8f72d707f44a
+		isNameInferred
+		sourceColumn: [IsWeekend]
+
+	partition Date = calculated
+		mode: import
+		source =
+				ADDCOLUMNS(
+				    CALENDAR(DATE(2013, 7, 4), DATE(2015, 5, 6)),
+				    "Year", YEAR([Date]),
+				    "Quarter", "Q" & QUARTER([Date]),
+				    "QuarterNumber", QUARTER([Date]),
+				    "Month", MONTH([Date]),
+				    "MonthName", FORMAT([Date], "MMMM"),
+				    "MonthShort", FORMAT([Date], "MMM"),
+				    "MonthYear", FORMAT([Date], "MMM YYYY"),
+				    "Day", DAY([Date]),
+				    "DayOfWeek", WEEKDAY([Date], 2),
+				    "DayName", FORMAT([Date], "DDDD"),
+				    "DayNameShort", FORMAT([Date], "DDD"),
+				    "WeekNumber", WEEKNUM([Date], 2),
+				    "YearMonth", YEAR([Date]) * 100 + MONTH([Date]),
+				    "YearQuarter", YEAR([Date]) * 10 + QUARTER([Date]),
+				    "IsWeekend", IF(WEEKDAY([Date], 2) >= 6, TRUE, FALSE)
+				)
+

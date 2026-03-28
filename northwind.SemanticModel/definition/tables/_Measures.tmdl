@@ -1,0 +1,673 @@
+/// Central measures table for all model KPIs
+table _Measures
+	lineageTag: 7ee27fcf-bb2f-4a5b-a600-7cca0b919a65
+
+	/// Net revenue after discounts across all order lines
+	measure 'Total Revenue' =
+			/*
+			   Total Revenue
+			   Calculates net revenue for every order line by multiplying
+			   unitPrice × quantity × (1 - discount), then summing across
+			   all rows in the current filter context. SUMX iterates
+			   order_details row by row, applying the discount deduction
+			   before aggregating — ensuring accurate line-level arithmetic.
+			*/
+			SUMX(
+			    order_details,
+			    order_details[unitPrice]
+			        * order_details[quantity]
+			        * ( 1 - order_details[discount] )
+			)
+		formatString: #,##0.00
+		displayFolder: Revenue
+		lineageTag: 89a32288-93ed-41b6-9ea7-687c3fcbd781
+
+	/// Count of distinct orders placed
+	measure 'Total Orders' =
+			/*
+			   Total Orders
+			   Returns the number of distinct orderIDs in the orders table
+			   within the current filter context. DISTINCTCOUNT ensures
+			   each order is counted once, regardless of how many
+			   order lines it contains in order_details.
+			*/
+			DISTINCTCOUNT( orders[orderID] )
+		formatString: #,##0
+		displayFolder: Revenue
+		lineageTag: dcd1ab6b-1cd8-49a3-8400-bd021557a885
+
+	/// Average net revenue per distinct order
+	measure 'Average Order Value' =
+			/*
+			   Average Order Value
+			   Divides Total Revenue by Total Orders to give the mean
+			   net revenue per distinct order. DIVIDE is used instead
+			   of the division operator so that a zero denominator
+			   returns 0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Revenue], [Total Orders], 0 )
+		formatString: #,##0.00
+		displayFolder: Revenue
+		lineageTag: 322d72c9-3274-4b8a-acbd-813d30d547b6
+
+	/// Total product units sold across all order lines
+	measure 'Total Units Sold' =
+			/*
+			   Total Units Sold
+			   Sums the quantity column from order_details for all rows
+			   in the current filter context. Represents the total number
+			   of individual product units sold across all orders.
+			   quantity is now Int64 so SUM() is used directly.
+			*/
+			SUM( order_details[quantity] )
+		formatString: #,##0
+		displayFolder: Revenue
+		lineageTag: 48772a96-8084-4504-b19f-4f2fd66b23e4
+
+	/// Total shipping freight charges across all orders
+	measure 'Total Freight' =
+			/*
+			   Total Freight
+			   Sums the freight column from the orders table for all
+			   orders in the current filter context. Represents the
+			   total shipping cost charged on those orders.
+			*/
+			SUM( orders[freight] )
+		formatString: #,##0.00
+		displayFolder: Revenue
+		lineageTag: b80102cf-268b-4aaf-8144-28cfb6d5b01c
+
+	/// Average discount rate applied across order lines
+	measure 'Average Discount %' =
+			/*
+			   Average Discount %
+			   What it calculates:
+			     The mean discount rate applied across all order lines
+			     in the current filter context.
+			   Tables / columns used:
+			     order_details[discount] — the proportional discount per
+			     order line, stored as Decimal (e.g. 0.10 = 10% off).
+			   Assumptions:
+			     discount is Decimal type so AVERAGE() works directly
+			     with no casting required. Values of 0 (no discount)
+			     are included in the average, which will pull the result
+			     down — this is intentional and reflects true average
+			     discount across all lines including undiscounted ones.
+			*/
+			AVERAGE( order_details[discount] )
+		formatString: 0.00%
+		displayFolder: Sales
+		lineageTag: 5698a60e-da5a-4ac6-a98c-7d62d9eaf044
+
+	/// Count of distinct products appearing in orders
+	measure 'Total Products' =
+			/*
+			   Total Products
+			   What it calculates:
+			     The count of distinct products that have appeared on at
+			     least one order line in the current filter context.
+			   Tables / columns used:
+			     order_details[productID] — the product identifier on
+			     each order line. DISTINCTCOUNT ensures each product is
+			     counted once regardless of how many lines it appears on.
+			   Assumptions:
+			     This counts products that have been ordered, not the
+			     full product catalogue. Products that exist in the
+			     products table but have never been ordered will not
+			     be included. Use Active Products or Discontinued Products
+			     for catalogue-level counts.
+			*/
+			DISTINCTCOUNT( order_details[productID] )
+		formatString: #,##0
+		displayFolder: Products
+		lineageTag: b10c5533-caff-47c9-b88e-205987b349fc
+
+	/// Count of distinct customers who placed at least one order
+	measure 'Total Customers' =
+			/*
+			   Total Customers
+			   Returns the count of distinct customerIDs from the orders
+			   table within the current filter context. Each customer is
+			   counted once regardless of how many orders they placed.
+			   Only customers who appear in the orders table are included.
+			*/
+			DISTINCTCOUNT( orders[customerID] )
+		formatString: #,##0
+		displayFolder: Customers
+		lineageTag: 79c92444-77c5-4d18-ac7c-6790606e23c6
+
+	/// Average net revenue generated per unit sold
+	measure 'Revenue per Unit' =
+			/*
+			   Revenue per Unit
+			   Divides Total Revenue by Total Units Sold to give the
+			   average net revenue earned per unit across all order lines
+			   in the current filter context. DIVIDE is used so that
+			   a zero unit count returns 0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Revenue], [Total Units Sold], 0 )
+		formatString: #,##0.00
+		displayFolder: Revenue
+		lineageTag: d8a14bba-5c09-4510-9d54-ef3b5f625586
+
+	/// Average number of orders placed per distinct customer
+	measure 'Avg Orders per Customer' =
+			/*
+			   Avg Orders per Customer
+			   Divides Total Orders by Total Customers to give the mean
+			   number of orders per distinct customer in the current
+			   filter context. DIVIDE is used so that a zero customer
+			   count safely returns 0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Orders], [Total Customers], 0 )
+		formatString: #,##0.00
+		displayFolder: Customers
+		lineageTag: 903ee407-e4be-46c0-9632-d7737e441f21
+
+	/// Average net revenue generated per distinct customer
+	measure 'Avg Revenue per Customer' =
+			/*
+			   Avg Revenue per Customer
+			   Divides Total Revenue by Total Customers to give the mean
+			   net revenue attributable to each distinct customer in the
+			   current filter context. DIVIDE is used so that a zero
+			   customer count safely returns 0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Revenue], [Total Customers], 0 )
+		formatString: #,##0.00
+		displayFolder: Customers
+		lineageTag: beae3d4f-b33c-467c-8b63-c528df3940a8
+
+	/// Count of distinct customers active within the current filter context
+	measure 'Customers in Period' =
+			/*
+			   Customers in Period
+			   Returns the count of distinct customerIDs from the orders
+			   table strictly within the current filter context — meaning
+			   only customers who placed at least one order during the
+			   period defined by any active date or slicer filters.
+			   Unlike Total Customers, this measure is sensitive to
+			   date range selections and will change as the period changes.
+			*/
+			DISTINCTCOUNT( orders[customerID] )
+		formatString: #,##0
+		displayFolder: Customers
+		lineageTag: 869c68c0-e559-4cda-b04b-159bf7eb9468
+
+	/// Count of distinct products that appear in at least one order line
+	measure 'Products Sold' =
+			/*
+			   Products Sold
+			   Returns the count of distinct productIDs from order_details
+			   within the current filter context. Represents the number
+			   of unique products that have actually been ordered, as
+			   opposed to the total products available in the catalogue.
+			*/
+			DISTINCTCOUNT( order_details[productID] )
+		formatString: #,##0
+		displayFolder: Products
+		lineageTag: 2fcb72ba-f85d-4510-b6cc-2b29b6f7d0db
+
+	/// Average unit price across all order lines
+	measure 'Avg Unit Price' =
+			/*
+			   Avg Unit Price
+			   Calculates the mean unitPrice across all rows in
+			   order_details within the current filter context.
+			   Note: this reflects the price at the time of ordering,
+			   which may differ from the current list price in products.
+			*/
+			AVERAGE( order_details[unitPrice] )
+		formatString: #,##0.00
+		displayFolder: Products
+		lineageTag: 15f1b9f9-25f3-4634-b7f1-08664b2fb276
+
+	/// Average discount rate applied across all order lines
+	measure 'Avg Discount %' =
+			/*
+			   Avg Discount %
+			   Calculates the mean discount rate across all rows in
+			   order_details within the current filter context.
+			   Values are in decimal form (e.g. 0.05 = 5%) and the
+			   format string renders them as a percentage automatically.
+			*/
+			AVERAGE( order_details[discount] )
+		formatString: 0.00%
+		displayFolder: Products
+		lineageTag: 16a12f95-b8bc-472f-ad6b-8dd3463712f2
+
+	/// Average net revenue generated per distinct product sold
+	measure 'Revenue per Product' =
+			/*
+			   Revenue per Product
+			   Divides Total Revenue by Products Sold to give the mean
+			   net revenue attributable to each distinct product in the
+			   current filter context. DIVIDE is used so that a zero
+			   product count safely returns 0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Revenue], [Products Sold], 0 )
+		formatString: #,##0.00
+		displayFolder: Products
+		lineageTag: 117a7345-6d7f-4299-be2d-61ca96201552
+
+	/// Count of products marked as discontinued in the product catalogue
+	measure 'Discontinued Products' =
+			/*
+			   Discontinued Products
+			   Counts rows in the products table where discontinued = 1.
+			   CALCULATE applies the filter over the full products table,
+			   ignoring any external filter context on products so the
+			   count always reflects the full catalogue state.
+			*/
+			CALCULATE(
+			    COUNTROWS( products ),
+			    products[discontinued] = 1
+			)
+		formatString: #,##0
+		displayFolder: Products
+		lineageTag: b0ad8ae7-977a-4702-ab06-7be33fa66328
+
+	/// Count of products currently active (not discontinued) in the product catalogue
+	measure 'Active Products' =
+			/*
+			   Active Products
+			   Counts rows in the products table where discontinued = 0,
+			   representing products still available for ordering.
+			   CALCULATE applies the filter over the full products table,
+			   ignoring any external filter context on products so the
+			   count always reflects the full catalogue state.
+			*/
+			CALCULATE(
+			    COUNTROWS( products ),
+			    products[discontinued] = 0
+			)
+		formatString: #,##0
+		displayFolder: Products
+		lineageTag: 0ec27000-9a0e-4e9f-9744-e3a61cfd249c
+
+	/// Total number of employees in the employees table
+	measure 'Total Employees' =
+			/*
+			   Total Employees
+			   Counts all rows in the employees table, representing the
+			   total headcount. COUNTROWS is used rather than
+			   DISTINCTCOUNT(employeeID) because each row represents
+			   one employee and the ID column is typed as Text.
+			   Note: this count is not filtered by order activity —
+			   it reflects all employees in the system regardless of
+			   whether they have processed any orders.
+			*/
+			COUNTROWS( employees )
+		formatString: #,##0
+		displayFolder: Employees
+		lineageTag: 5a0d07d6-d4c9-465c-861d-b4f3d2ed52ef
+
+	/// Average net revenue attributable per employee
+	measure 'Revenue per Employee' =
+			/*
+			   Revenue per Employee
+			   Divides Total Revenue by Total Employees to give the mean
+			   net revenue per headcount in the current filter context.
+			   Useful for benchmarking employee productivity in revenue terms.
+			   DIVIDE is used so that a zero employee count safely returns
+			   0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Revenue], [Total Employees], 0 )
+		formatString: #,##0.00
+		displayFolder: Employees
+		lineageTag: d695f06b-4a1a-4eec-841b-b8b1066665d3
+
+	/// Average number of orders handled per employee
+	measure 'Orders per Employee' =
+			/*
+			   Orders per Employee
+			   Divides Total Orders by Total Employees to give the mean
+			   number of orders handled per headcount in the current
+			   filter context. Useful for assessing workload distribution
+			   across the team. DIVIDE is used so that a zero employee
+			   count safely returns 0 rather than an error or BLANK.
+			*/
+			DIVIDE( [Total Orders], [Total Employees], 0 )
+		formatString: #,##0.00
+		displayFolder: Employees
+		lineageTag: 96754f69-8337-4b7d-af65-3139560f062e
+
+	/// Month-to-date cumulative revenue
+	measure 'Revenue MTD' =
+			/*
+			   Revenue MTD
+			   Calculates cumulative Total Revenue from the first day of
+			   the current month up to the last date in the current filter
+			   context. TOTALMTD is shorthand for CALCULATE with
+			   DATESMTD, and requires DimDate to be marked as a date table.
+			*/
+			TOTALMTD(
+			    [Total Revenue],
+			    DimDate[Date]
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: e4bf4552-4c8a-4b7a-84b3-bb63a4baaf12
+
+	/// Quarter-to-date cumulative revenue
+	measure 'Revenue QTD' =
+			/*
+			   Revenue QTD
+			   Calculates cumulative Total Revenue from the first day of
+			   the current quarter up to the last date in the current
+			   filter context. TOTALQTD is shorthand for CALCULATE with
+			   DATESQTD, and requires DimDate to be marked as a date table.
+			*/
+			TOTALQTD(
+			    [Total Revenue],
+			    DimDate[Date]
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 4246ed84-e6b9-4b4b-9c34-f012ac61c126
+
+	/// Year-to-date cumulative revenue
+	measure 'Revenue YTD' =
+			/*
+			   Revenue YTD
+			   Calculates cumulative Total Revenue from the first day of
+			   the current year up to the last date in the current filter
+			   context. TOTALYTD is shorthand for CALCULATE with DATESYTD,
+			   and requires DimDate to be marked as a date table.
+			*/
+			TOTALYTD(
+			    [Total Revenue],
+			    DimDate[Date]
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 53fc83c0-fd77-4bdf-9b18-0ca329635d82
+
+	/// Total revenue for the full previous calendar month
+	measure 'Revenue Previous Month' =
+			/*
+			   Revenue Previous Month
+			   Shifts the current date filter back by exactly 1 month
+			   using DATEADD, then recalculates Total Revenue over that
+			   shifted period. Returns the revenue for the same number
+			   of days in the prior month as are selected in the current
+			   filter context.
+			*/
+			CALCULATE(
+			    [Total Revenue],
+			    DATEADD( DimDate[Date], -1, MONTH )
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 5ddc2d6e-063f-4dc1-b167-2af6e5034d3e
+
+	/// Total revenue for the previous calendar quarter
+	measure 'Revenue Previous Quarter' =
+			/*
+			   Revenue Previous Quarter
+			   Shifts the current date filter back by exactly 1 quarter
+			   using DATEADD, then recalculates Total Revenue over that
+			   shifted period. Returns revenue for the equivalent period
+			   in the prior quarter.
+			*/
+			CALCULATE(
+			    [Total Revenue],
+			    DATEADD( DimDate[Date], -1, QUARTER )
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 51531313-1379-4d1c-af4f-4d69aeac5814
+
+	/// Total revenue for the same period in the previous year
+	measure 'Revenue Previous Year' =
+			/*
+			   Revenue Previous Year
+			   Uses SAMEPERIODLASTYEAR to shift the current date filter
+			   back by exactly 12 months, then recalculates Total Revenue.
+			   Ideal for YoY comparisons as it preserves the exact date
+			   range shape (e.g. same month, same partial period).
+			*/
+			CALCULATE(
+			    [Total Revenue],
+			    SAMEPERIODLASTYEAR( DimDate[Date] )
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 7d30c963-c1d6-4262-8357-710f86f2e5b4
+
+	/// Absolute revenue change versus the previous month
+	measure 'Revenue vs Prev Month' =
+			/*
+			   Revenue vs Prev Month
+			   Calculates the absolute difference between Total Revenue
+			   in the current period and Revenue Previous Month.
+			   A positive value indicates growth; negative indicates decline.
+			   Returns BLANK when either period has no data.
+			*/
+			[Total Revenue] - [Revenue Previous Month]
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 03aa679b-c35a-40b6-9f60-308650746ff1
+
+	/// Absolute revenue change versus the same period last year
+	measure 'Revenue vs Prev Year' =
+			/*
+			   Revenue vs Prev Year
+			   Calculates the absolute difference between Total Revenue
+			   in the current period and Revenue Previous Year.
+			   A positive value indicates YoY growth; negative indicates
+			   a YoY decline. Returns BLANK when either period has no data.
+			*/
+			[Total Revenue] - [Revenue Previous Year]
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: ab62a687-ad0f-47b3-9fac-98808f7d5622
+
+	/// Month-over-month revenue growth rate
+	measure 'MoM Growth %' =
+			/*
+			   MoM Growth %
+			   Divides Revenue vs Prev Month by Revenue Previous Month
+			   to express the change as a percentage. DIVIDE is used with
+			   BLANK() as the alternate result so that months with no
+			   prior-month data (e.g. the very first month) show blank
+			   rather than zero, keeping charts and tables clean.
+			*/
+			DIVIDE(
+			    [Revenue vs Prev Month],
+			    [Revenue Previous Month],
+			    BLANK()
+			)
+		formatString: 0.00%
+		displayFolder: Time Intelligence
+		lineageTag: 0cbac98d-bc14-4ba0-a9e9-01550c058b27
+
+	/// Year-over-year revenue growth rate
+	measure 'YoY Growth %' =
+			/*
+			   YoY Growth %
+			   Divides Revenue vs Prev Year by Revenue Previous Year
+			   to express the change as a percentage. DIVIDE is used with
+			   BLANK() as the alternate result so that periods with no
+			   prior-year data (e.g. the first year in the dataset) show
+			   blank rather than zero, keeping charts and tables clean.
+			*/
+			DIVIDE(
+			    [Revenue vs Prev Year],
+			    [Revenue Previous Year],
+			    BLANK()
+			)
+		formatString: 0.00%
+		displayFolder: Time Intelligence
+		lineageTag: 91574ec8-0afc-41cf-9c0a-35a85c99254e
+
+	/// Total revenue over the rolling 3-month window ending on the last date in context
+	measure 'Rolling 3 Month Revenue' =
+			/*
+			   Rolling 3 Month Revenue
+			   Calculates Total Revenue over the 3-month window ending
+			   on the last date visible in the current filter context.
+			   DATESINPERIOD starts from LASTDATE and looks back -3 months,
+			   producing a rolling window that moves forward as the date
+			   filter changes. Useful for smoothing short-term volatility.
+			*/
+			CALCULATE(
+			    [Total Revenue],
+			    DATESINPERIOD(
+			        DimDate[Date],
+			        LASTDATE( DimDate[Date] ),
+			        -3,
+			        MONTH
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: bde3383a-cdcd-4964-ac51-3724c84f902b
+
+	/// Total revenue over the rolling 12-month window ending on the last date in context
+	measure 'Rolling 12 Month Revenue' =
+			/*
+			   Rolling 12 Month Revenue
+			   Calculates Total Revenue over the 12-month window ending
+			   on the last date visible in the current filter context.
+			   DATESINPERIOD starts from LASTDATE and looks back -12 months.
+			   Equivalent to a trailing-twelve-months (TTM) revenue figure
+			   and is useful for annualised trend analysis.
+			*/
+			CALCULATE(
+			    [Total Revenue],
+			    DATESINPERIOD(
+			        DimDate[Date],
+			        LASTDATE( DimDate[Date] ),
+			        -12,
+			        MONTH
+			    )
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: e04a7e05-18b4-42ca-963f-981fdac067fe
+
+	/// Average monthly revenue over the rolling 3-month window
+	measure '3 Month Moving Average' =
+			/*
+			   3 Month Moving Average
+			   Divides Rolling 3 Month Revenue by 3 to give the mean
+			   monthly revenue over the trailing 3-month window.
+			   Smooths out month-to-month spikes and dips to reveal
+			   the underlying revenue trend. DIVIDE with 0 as alternate
+			   result guards against a zero denominator, though in
+			   practice the denominator is always the constant 3.
+			*/
+			DIVIDE(
+			    [Rolling 3 Month Revenue],
+			    3,
+			    0
+			)
+		formatString: #,##0.00
+		displayFolder: Time Intelligence
+		lineageTag: 1a4662e9-86fa-4546-a778-c9b927743cfe
+
+	/// Month-to-date cumulative distinct order count
+	measure 'Orders MTD' =
+			/*
+			   Orders MTD
+			   Calculates the cumulative count of distinct orders from
+			   the first day of the current month up to the last date
+			   in the current filter context. TOTALMTD is shorthand for
+			   CALCULATE with DATESMTD, and requires DimDate to be
+			   marked as a date table.
+			*/
+			TOTALMTD(
+			    [Total Orders],
+			    DimDate[Date]
+			)
+		formatString: #,##0
+		displayFolder: Orders - Time Intelligence
+		lineageTag: 2d08abe9-b7af-4b15-8fbd-edac51c8344f
+
+	/// Year-to-date cumulative distinct order count
+	measure 'Orders YTD' =
+			/*
+			   Orders YTD
+			   Calculates the cumulative count of distinct orders from
+			   the first day of the current year up to the last date
+			   in the current filter context. TOTALYTD is shorthand for
+			   CALCULATE with DATESYTD, and requires DimDate to be
+			   marked as a date table.
+			*/
+			TOTALYTD(
+			    [Total Orders],
+			    DimDate[Date]
+			)
+		formatString: #,##0
+		displayFolder: Orders - Time Intelligence
+		lineageTag: e26a7ecd-1531-4481-8933-445fa9da01e2
+
+	/// Total distinct orders placed in the previous calendar month
+	measure 'Orders Previous Month' =
+			/*
+			   Orders Previous Month
+			   Shifts the current date filter back by exactly 1 month
+			   using DATEADD, then recalculates Total Orders over that
+			   shifted period. Returns the order count for the equivalent
+			   number of days in the prior month relative to the current
+			   filter context.
+			*/
+			CALCULATE(
+			    [Total Orders],
+			    DATEADD( DimDate[Date], -1, MONTH )
+			)
+		formatString: #,##0
+		displayFolder: Orders - Time Intelligence
+		lineageTag: 447e5784-ce71-4a17-bbd8-ebf1917141df
+
+	/// Total distinct orders placed in the same period last year
+	measure 'Orders Previous Year' =
+			/*
+			   Orders Previous Year
+			   Uses SAMEPERIODLASTYEAR to shift the current date filter
+			   back by exactly 12 months, then recalculates Total Orders.
+			   Preserves the exact shape of the current period (e.g. same
+			   month, same partial range) one year prior. Used as the
+			   denominator in YoY Growth % calculations.
+			*/
+			CALCULATE(
+			    [Total Orders],
+			    SAMEPERIODLASTYEAR( DimDate[Date] )
+			)
+		formatString: #,##0
+		displayFolder: Orders - Time Intelligence
+		lineageTag: 76157ae1-34c5-437a-ae5a-573e16f4d1e1
+
+	/// Year-over-year growth rate in order volume
+	measure 'Orders YoY Growth %' =
+			/*
+			   Orders YoY Growth %
+			   Calculates the percentage change in order volume versus
+			   the same period one year prior. The numerator is the
+			   absolute difference between Total Orders and Orders
+			   Previous Year. DIVIDE is used with BLANK() as the
+			   alternate result so that periods with no prior-year
+			   data (e.g. the first year in the dataset) return blank
+			   rather than zero, keeping charts and tables clean.
+			*/
+			DIVIDE(
+			    [Total Orders] - [Orders Previous Year],
+			    [Orders Previous Year],
+			    BLANK()
+			)
+		formatString: 0.00%
+		displayFolder: Orders - Time Intelligence
+		lineageTag: 3222f60c-c579-4707-9767-da3cbd974bf5
+
+	column _
+		isHidden
+		lineageTag: 043f4588-80be-4626-938c-f633b50af7f4
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: [_]
+
+	partition _Measures = calculated
+		mode: import
+		source = ROW("_", BLANK())
+
