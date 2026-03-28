@@ -7,13 +7,12 @@
     },
 
     "filesystem": {
-      "command": "npx",
-      "args": [
-        "-y",
-        "@modelcontextprotocol/server-filesystem",
-        "C:\\Users\\usman sharif\\Desktop\\Gen_AI\\PBI\\powerbi-mcp-northwindv2"
-      ]
-    }
+  "command": "node",
+  "args": [
+    "C:\\Users\\usman sharif\\AppData\\Roaming\\npm\\node_modules\\@modelcontextprotocol\\server-filesystem\\dist\\index.js",
+    "C:\\Users\\usman sharif\\Desktop\\Gen_AI\\PBI\\powerbi-mcp-northwindv2"
+  ]
+}
 
   }
 }
