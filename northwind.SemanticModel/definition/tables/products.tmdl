@@ -31,10 +31,10 @@ table products
 
 	/// The current standard list price per unit. This is the catalogue price and may not match the price recorded on historical orders.
 	column unitPrice
-		dataType: decimal
+		dataType: double
 		formatString: #,##0.00
 		lineageTag: 271e30af-ca0b-4b44-98b3-af8b2ca64641
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: unitPrice
 
 		annotation SummarizationSetBy = Automatic

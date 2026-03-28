@@ -22,10 +22,10 @@ table order_details
 
 	/// The selling price per unit at the time the order was placed. May differ from the current list price in the products table.
 	column unitPrice
-		dataType: decimal
+		dataType: double
 		formatString: #,##0.00
 		lineageTag: 0b6d7f59-54d4-4ce1-968e-006c974fee64
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: unitPrice
 
 		annotation SummarizationSetBy = Automatic
@@ -41,10 +41,10 @@ table order_details
 
 	/// The proportional discount applied to this order line, expressed as a decimal (e.g. 0.10 = 10% off). A value of 0 means no discount was given.
 	column discount
-		dataType: decimal
+		dataType: double
 		formatString: 0.00%
 		lineageTag: c784cfc7-c5ce-4e9f-ae6d-64a2d0e9b7ac
-		summarizeBy: none
+		summarizeBy: sum
 		sourceColumn: discount
 
 		annotation SummarizationSetBy = Automatic
