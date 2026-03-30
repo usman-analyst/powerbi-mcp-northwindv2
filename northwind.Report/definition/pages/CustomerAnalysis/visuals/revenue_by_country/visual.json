@@ -1,0 +1,55 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "revenue_by_country",
+  "position": {
+    "x": 795,
+    "y": 140,
+    "z": 1000,
+    "height": 260,
+    "width": 465,
+    "tabOrder": 4
+  },
+  "visual": {
+    "visualType": "donutChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "customers"
+                    }
+                  },
+                  "Property": "country"
+                }
+              },
+              "queryRef": "customers.country",
+              "active": true
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Total Revenue"
+                }
+              },
+              "queryRef": "_Measures.Total Revenue",
+              "active": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}

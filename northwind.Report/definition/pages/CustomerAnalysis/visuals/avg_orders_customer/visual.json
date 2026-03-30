@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.0.0/schema.json",
+  "name": "avg_orders_customer",
+  "position": {
+    "x": 830,
+    "y": 15,
+    "z": 1000,
+    "height": 110,
+    "width": 410,
+    "tabOrder": 2
+  },
+  "visual": {
+    "visualType": "card",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "_Measures"
+                    }
+                  },
+                  "Property": "Avg Orders per Customer"
+                }
+              },
+              "queryRef": "_Measures.Avg Orders per Customer",
+              "active": true
+            }
+          ]
+        }
+      }
+    }
+  }
+}
